@@ -58,8 +58,16 @@ async function getCurrentInterface() {
   };
 }
 
+let cachedProfiles = [];
+let lastProfilesFetch = 0;
+
 // Parse all saved profiles and extract cleartext passwords
-async function getAllProfiles() {
+async function getAllProfiles(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && cachedProfiles.length > 0 && (now - lastProfilesFetch < 30000)) {
+    return cachedProfiles;
+  }
+
   const raw = await runCmd('netsh wlan show profiles');
   const profileMatches = [...raw.matchAll(/All User Profile\s*:\s*(.+)/gi)];
   const profileNames = profileMatches.map(m => m[1].trim()).filter(Boolean);
@@ -99,13 +107,19 @@ async function getAllProfiles() {
     };
   });
 
-  const profiles = await Promise.all(profilePromises);
-  return profiles;
+  cachedProfiles = await Promise.all(profilePromises);
+  lastProfilesFetch = now;
+  return cachedProfiles;
 }
 
-// Parse live nearby broadcast Wi-Fi networks
+// Parse live nearby broadcast Wi-Fi networks (ultra-fast hardware probe via native wifiscan binary)
 async function getNearbyNetworks() {
-  let raw = await runCmd('powershell -NoProfile -ExecutionPolicy Bypass -File "src/utils/scanHelper.ps1"');
+  const exePath = path.join(__dirname, 'bin', 'wifiscan.exe');
+  let raw = '';
+
+  if (fs.existsSync(exePath)) {
+    raw = await runCmd(`"${exePath}"`);
+  }
   if (!raw || !raw.includes('SSID')) {
     raw = await runCmd('netsh wlan show networks mode=bssid');
   }
@@ -116,7 +130,7 @@ async function getNearbyNetworks() {
   const sections = raw.split(/SSID\s+\d+\s+:\s+/i);
   sections.shift(); // Remove header
 
-  const savedProfiles = await getAllProfiles();
+  const savedProfiles = await getAllProfiles(false);
   const profileMap = new Map();
   savedProfiles.forEach(p => {
     profileMap.set(p.ssid.toLowerCase(), p);
@@ -197,14 +211,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/api/wifi/profiles') {
-    const profiles = await getAllProfiles();
+    const profiles = await getAllProfiles(true);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
     res.end(JSON.stringify({ count: profiles.length, profiles }));
     return;
   }
 
   if (pathname === '/api/wifi/scan') {
-    const scanResults = await getNearbyNetworks();
+    const scanResults = await getNearbyNetworks(false);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
     res.end(JSON.stringify({ count: scanResults.length, networks: scanResults }));
     return;
@@ -213,8 +227,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/wifi/full-audit') {
     const [current, profiles, nearby] = await Promise.all([
       getCurrentInterface(),
-      getAllProfiles(),
-      getNearbyNetworks()
+      getAllProfiles(true),
+      getNearbyNetworks(true)
     ]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
     res.end(JSON.stringify({ current, profiles, nearby, timestamp: new Date().toISOString() }));

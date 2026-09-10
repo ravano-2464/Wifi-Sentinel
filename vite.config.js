@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { exec } from 'child_process';
 import url from 'url';
+import fs from 'fs';
+import path from 'path';
 
 // Helper to run shell commands with UTF-8 on Windows
 function runCmd(cmd) {
@@ -40,7 +42,7 @@ async function getCurrentInterface() {
     bssid: getField(/^\s*AP BSSID\s*:\s*(.+)$/m),
     band: getField(/^\s*Band\s*:\s*(.+)$/m) || '2.4 GHz',
     channel: getField(/^\s*Channel\s*:\s*(.+)$/m),
-    radioType: getField(/^\s*Radio type\s*:\s*(.+)$/m),
+    radioType: getField(/^\s*Radio type\s*:\s*(.+)/m),
     authentication: getField(/^\s*Authentication\s*:\s*(.+)$/m),
     cipher: getField(/^\s*Cipher\s*:\s*(.+)$/m),
     receiveRateMbps: parseFloat(getField(/^\s*Receive rate \(Mbps\)\s*:\s*([\d.]+)/m)) || 0,
@@ -52,7 +54,15 @@ async function getCurrentInterface() {
   };
 }
 
-async function getAllProfiles() {
+let cachedProfiles = [];
+let lastProfilesFetch = 0;
+
+async function getAllProfiles(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && cachedProfiles.length > 0 && (now - lastProfilesFetch < 30000)) {
+    return cachedProfiles;
+  }
+
   const raw = await runCmd('netsh wlan show profiles');
   const profileMatches = [...raw.matchAll(/All User Profile\s*:\s*(.+)/gi)];
   const profileNames = profileMatches.map(m => m[1].trim()).filter(Boolean);
@@ -89,12 +99,18 @@ async function getAllProfiles() {
     };
   });
 
-  return await Promise.all(profilePromises);
+  cachedProfiles = await Promise.all(profilePromises);
+  lastProfilesFetch = now;
+  return cachedProfiles;
 }
 
 async function getNearbyNetworks() {
-  // Actively trigger Wi-Fi hardware adapter scan
-  let raw = await runCmd('powershell -NoProfile -ExecutionPolicy Bypass -File "src/utils/scanHelper.ps1"');
+  const exePath = path.join(process.cwd(), 'bin', 'wifiscan.exe');
+  let raw = '';
+
+  if (fs.existsSync(exePath)) {
+    raw = await runCmd(`"${exePath}"`);
+  }
   if (!raw || !raw.includes('SSID')) {
     raw = await runCmd('netsh wlan show networks mode=bssid');
   }
@@ -105,7 +121,7 @@ async function getNearbyNetworks() {
   const sections = raw.split(/SSID\s+\d+\s+:\s+/i);
   sections.shift(); // remove header
 
-  const savedProfiles = await getAllProfiles();
+  const savedProfiles = await getAllProfiles(false);
   const profileMap = new Map();
   savedProfiles.forEach(p => {
     profileMap.set(p.ssid.toLowerCase(), p);
@@ -168,14 +184,14 @@ function wifiApiPlugin() {
         }
 
         if (pathname === '/api/wifi/profiles') {
-          const profiles = await getAllProfiles();
+          const profiles = await getAllProfiles(true);
           res.setHeader('Content-Type', 'application/json; charset=UTF-8');
           res.end(JSON.stringify({ count: profiles.length, profiles }));
           return;
         }
 
         if (pathname === '/api/wifi/scan') {
-          const networks = await getNearbyNetworks();
+          const networks = await getNearbyNetworks(false);
           res.setHeader('Content-Type', 'application/json; charset=UTF-8');
           res.end(JSON.stringify({ count: networks.length, networks }));
           return;
@@ -184,8 +200,8 @@ function wifiApiPlugin() {
         if (pathname === '/api/wifi/full-audit') {
           const [current, profiles, nearby] = await Promise.all([
             getCurrentInterface(),
-            getAllProfiles(),
-            getNearbyNetworks()
+            getAllProfiles(true),
+            getNearbyNetworks(true)
           ]);
           res.setHeader('Content-Type', 'application/json; charset=UTF-8');
           res.end(JSON.stringify({ current, profiles, nearby, timestamp: new Date().toISOString() }));
