@@ -116,6 +116,12 @@ async function getNearbyNetworks() {
   const sections = raw.split(/SSID\s+\d+\s+:\s+/i);
   sections.shift(); // Remove header
 
+  const savedProfiles = await getAllProfiles();
+  const profileMap = new Map();
+  savedProfiles.forEach(p => {
+    profileMap.set(p.ssid.toLowerCase(), p);
+  });
+
   for (const sec of sections) {
     const lines = sec.split('\n');
     const ssid = lines[0].trim();
@@ -126,23 +132,29 @@ async function getNearbyNetworks() {
       return m ? m[1].trim() : '';
     };
 
-    const auth = getVal(/Authentication\s*:\s*(.+)/i);
-    const enc = getVal(/Encryption\s*:\s*(.+)/i);
+    const auth = getVal(/Authentication\s*:\s*(.+)/i) || 'WPA2-Personal';
+    const enc = getVal(/Encryption\s*:\s*(.+)/i) || 'CCMP';
     const bssid = getVal(/BSSID\s+\d+\s*:\s*([a-f0-9:]{17})/i);
     const signal = parseInt(getVal(/Signal\s*:\s*(\d+)%/i), 10) || 50;
-    const radio = getVal(/Radio type\s*:\s*(.+)/i);
+    const radio = getVal(/Radio type\s*:\s*(.+)/i) || '802.11n';
     const band = getVal(/Band\s*:\s*(.+)/i) || (sec.includes('5 GHz') ? '5 GHz' : '2.4 GHz');
     const channel = getVal(/Channel\s*:\s*(\d+)/i) || 'Auto';
+
+    const saved = profileMap.get(ssid.toLowerCase());
+    const isOpen = auth.toLowerCase().includes('open') || enc.toLowerCase().includes('none');
 
     networks.push({
       ssid,
       bssid: bssid || 'N/A',
       signal,
-      authentication: auth || 'WPA2-Personal',
-      encryption: enc || 'CCMP',
-      radio: radio || '802.11n',
+      authentication: auth,
+      encryption: enc,
+      radio,
       band,
-      channel
+      channel,
+      isSaved: Boolean(saved),
+      savedPassword: saved ? saved.password : (isOpen ? '(Open / No Password)' : null),
+      isOpen
     });
   }
 

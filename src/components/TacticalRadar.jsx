@@ -78,12 +78,20 @@ export default function TacticalRadar({
         // Radial distance directly calculated from real physical antenna signal
         const distRatio = Math.max(0.25, Math.min(0.90, 1.0 - (sig / 100) * 0.72));
 
+        const isOpenNet = Boolean(
+          net.isOpen || 
+          (net.authentication && net.authentication.toLowerCase().includes('open')) || 
+          (net.encryption && net.encryption.toLowerCase().includes('none')) ||
+          (net.auth && net.auth.toLowerCase().includes('open')) ||
+          (net.password && (net.password.toLowerCase().includes('open') || net.password.toLowerCase().includes('no password')))
+        );
+
         let nodeType = 'nearby';
         let status = `AIRWAVE TARGET // CH.${net.channel || 'Auto'}`;
 
-        if (net.isOpen) {
+        if (isOpenNet) {
           nodeType = 'open';
-          status = `OPEN AIRWAVE // CH.${net.channel || 'Auto'}`;
+          status = `OPEN AIRWAVE // NO PASSWORD (CH.${net.channel || 'Auto'})`;
         } else if (net.isSaved) {
           nodeType = 'cracked';
           status = `CRACKED // CH.${net.channel || 'Auto'}`;
@@ -99,9 +107,10 @@ export default function TacticalRadar({
           status,
           angle,
           distRatio,
-          auth: net.authentication,
-          password: net.savedPassword,
-          isSaved: net.isSaved
+          auth: net.authentication || (isOpenNet ? 'Open (No Password)' : 'WPA2'),
+          password: isOpenNet ? '(Open / No Password)' : net.savedPassword,
+          isSaved: net.isSaved || isOpenNet,
+          isOpen: isOpenNet
         });
       });
     }
@@ -117,19 +126,28 @@ export default function TacticalRadar({
         const is5G = p.ssid.includes('5G') || p.ssid.includes('5g');
         const distRatio = is5G ? 0.84 + ((hash % 10) / 100) : 0.76 + ((hash % 12) / 100);
 
+        const isOpenProf = Boolean(
+          p.isOpen || 
+          p.type === 'OPEN' || 
+          p.password?.toLowerCase().includes('open') || 
+          p.password?.toLowerCase().includes('no password') ||
+          p.authentication?.toLowerCase().includes('open')
+        );
+
         nodes.push({
           ssid: p.ssid,
           bssid: 'SAVED PROFILE',
           band: is5G ? '5 GHz' : '2.4 GHz',
           channel: 'Profile',
           signal: 30 + (hash % 30),
-          type: p.isOpen ? 'open' : 'saved',
-          status: 'SAVED VAULT PROFILE',
+          type: isOpenProf ? 'open' : 'saved',
+          status: isOpenProf ? 'OPEN AIRWAVE // NO PASSWORD' : 'SAVED VAULT PROFILE',
           angle,
           distRatio,
           auth: p.authentication,
           password: p.password,
-          isSaved: true
+          isSaved: true,
+          isOpen: isOpenProf
         });
       });
     }
@@ -323,11 +341,11 @@ export default function TacticalRadar({
         ctx.font = '10px "JetBrains Mono", monospace';
         ctx.fillText(line2, tx + 10, ty + 28);
 
-        ctx.fillStyle = hoveredNode.type === 'omni' ? '#f0abfc' : '#00f0ff';
+        ctx.fillStyle = hoveredNode.type === 'omni' ? '#f0abfc' : (hoveredNode.type === 'open' ? '#ff0055' : '#00f0ff');
         ctx.fillText(line3, tx + 10, ty + 41);
 
         if (line4) {
-          ctx.fillStyle = '#ffe600';
+          ctx.fillStyle = hoveredNode.type === 'open' ? '#ff70a0' : '#ffe600';
           ctx.fillText(line4, tx + 10, ty + 55);
         }
       }

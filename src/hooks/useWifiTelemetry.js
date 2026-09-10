@@ -27,11 +27,11 @@ export function useWifiTelemetry(onLog) {
     }
   }, [onLog]);
 
-  // Initial load + periodic live interface poller (every 2.5s)
+  // Initial load + periodic live interface poller (every 2.5s) & airwave scan (every 6s)
   useEffect(() => {
     fetchFullAudit();
 
-    const timer = setInterval(async () => {
+    const interfaceTimer = setInterval(async () => {
       try {
         const current = await WifiService.getCurrentInterface();
         setCurrentWifi(current);
@@ -40,7 +40,21 @@ export function useWifiTelemetry(onLog) {
       }
     }, 2500);
 
-    return () => clearInterval(timer);
+    const scanTimer = setInterval(async () => {
+      try {
+        const scanData = await WifiService.getNearbyNetworks();
+        if (scanData && Array.isArray(scanData.networks)) {
+          setNearbyNetworks(scanData.networks);
+        }
+      } catch (e) {
+        // Silently retry next tick
+      }
+    }, 6000);
+
+    return () => {
+      clearInterval(interfaceTimer);
+      clearInterval(scanTimer);
+    };
   }, [fetchFullAudit]);
 
   return {

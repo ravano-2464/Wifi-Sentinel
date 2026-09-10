@@ -131,6 +131,7 @@ async function getNearbyNetworks() {
 
     // Cross reference with saved passwords
     const saved = profileMap.get(ssid.toLowerCase());
+    const isOpen = auth.toLowerCase().includes('open') || enc.toLowerCase().includes('none');
 
     networks.push({
       ssid,
@@ -142,8 +143,8 @@ async function getNearbyNetworks() {
       band,
       channel,
       isSaved: Boolean(saved),
-      savedPassword: saved ? saved.password : null,
-      isOpen: auth.toLowerCase().includes('open') || enc.toLowerCase().includes('none')
+      savedPassword: saved ? saved.password : (isOpen ? '(Open / No Password)' : null),
+      isOpen
     });
   }
 

@@ -1387,6 +1387,28 @@ body.cyber-theme {
   letter-spacing: 3px;
 }
 
+.table-pass-text.open {
+  color: var(--neon-pink);
+  border-color: rgba(255, 0, 85, 0.35);
+  background: rgba(255, 0, 85, 0.08);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.live-tag {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: var(--neon-cyan);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .table-actions {
   display: flex;
   align-items: center;

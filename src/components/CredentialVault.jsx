@@ -22,55 +22,110 @@ export default function CredentialVault({
   const q = searchQuery.toLowerCase();
   const currentSsid = currentWifi && currentWifi.connected ? currentWifi.ssid : '';
 
-  // Calculate stats
+  // 1. Build live airwaves map from nearby networks
+  const nearbyMap = new Map();
+  nearbyNetworks.forEach(net => {
+    if (net.ssid) nearbyMap.set(net.ssid.toLowerCase(), net);
+  });
+
+  // 2. Augment saved profiles with live RF telemetry if currently in range
+  const augmentedProfiles = profiles.map(p => {
+    const live = nearbyMap.get(p.ssid.toLowerCase());
+    const isOpen = Boolean(
+      p.isOpen || 
+      p.type === 'OPEN' || 
+      p.authentication?.toLowerCase().includes('open') || 
+      p.password?.toLowerCase().includes('open') ||
+      p.password?.toLowerCase().includes('no password') ||
+      (live && live.isOpen) ||
+      (live && live.authentication?.toLowerCase().includes('open'))
+    );
+    return {
+      ...p,
+      isOpen,
+      isLive: Boolean(live),
+      signal: live ? live.signal : null,
+      band: live ? live.band : (p.ssid.includes('5G') || p.ssid.includes('5g') ? '5 GHz' : '2.4 GHz'),
+      channel: live ? live.channel : null
+    };
+  });
+
+  // 3. Incorporate live surrounding airwaves not yet saved in Windows profiles (including Open hotspots)
+  const savedSsidSet = new Set(profiles.map(p => p.ssid.toLowerCase()));
+  const liveNearbyProfiles = nearbyNetworks
+    .filter(net => net.ssid && !savedSsidSet.has(net.ssid.toLowerCase()))
+    .map(net => {
+      const isOpen = Boolean(
+        net.isOpen || 
+        net.authentication?.toLowerCase().includes('open') || 
+        net.encryption?.toLowerCase().includes('none')
+      );
+      return {
+        name: net.ssid,
+        ssid: net.ssid,
+        password: net.savedPassword || (isOpen ? '(Open / No Password)' : '(Protected / In Range)'),
+        hasPassword: Boolean(net.savedPassword),
+        isOpen,
+        authentication: net.authentication || (isOpen ? 'Open' : 'WPA2-Personal'),
+        cipher: net.encryption || (isOpen ? 'None' : 'CCMP'),
+        connectionMode: 'Live Airwave',
+        radioType: net.radio || '802.11',
+        type: isOpen ? 'OPEN' : (net.authentication?.includes('WPA3') ? 'WPA3' : 'WPA2'),
+        isLive: true,
+        signal: net.signal,
+        band: net.band,
+        channel: net.channel
+      };
+    });
+
+  const allVaultProfiles = [...augmentedProfiles, ...liveNearbyProfiles];
+
+  // 4. Calculate stats across all available profiles & live airwaves
   let wpa3Count = 0;
   let wpa2Count = 0;
   let openCount = 0;
 
-  profiles.forEach(p => {
-    if (p.type === 'WPA3' || p.authentication?.includes('WPA3')) wpa3Count++;
-    else if (p.isOpen || p.type === 'OPEN') openCount++;
+  allVaultProfiles.forEach(p => {
+    if (p.isOpen || p.type === 'OPEN' || p.authentication?.toLowerCase().includes('open')) openCount++;
+    else if (p.type === 'WPA3' || p.authentication?.includes('WPA3')) wpa3Count++;
     else wpa2Count++;
   });
 
-  const nearbySsidSet = new Set(nearbyNetworks.map(n => n.ssid.toLowerCase()));
-
-  const filteredProfiles = profiles.filter(p => {
+  const filteredProfiles = allVaultProfiles.filter(p => {
     const matchesSearch = !q || 
       p.ssid.toLowerCase().includes(q) ||
-      p.password.toLowerCase().includes(q) ||
-      p.authentication?.toLowerCase().includes(q) ||
-      p.cipher?.toLowerCase().includes(q);
+      (p.password && p.password.toLowerCase().includes(q)) ||
+      (p.authentication && p.authentication.toLowerCase().includes(q)) ||
+      (p.cipher && p.cipher.toLowerCase().includes(q));
 
     if (!matchesSearch) return false;
 
     if (activeFilter === 'ALL') return true;
-    if (activeFilter === 'SURROUNDING') return nearbySsidSet.has(p.ssid.toLowerCase());
+    if (activeFilter === 'SURROUNDING') return p.isLive;
     if (activeFilter === 'WPA3') return p.type === 'WPA3' || p.authentication?.includes('WPA3');
     if (activeFilter === 'WPA2') return p.type === 'WPA2' || p.authentication?.includes('WPA2');
-    if (activeFilter === '5G') return p.ssid.includes('5G') || p.ssid.includes('5g');
-    if (activeFilter === 'OPEN') return p.isOpen || p.type === 'OPEN';
+    if (activeFilter === '5G') return p.ssid.includes('5G') || p.ssid.includes('5g') || p.band?.includes('5');
+    if (activeFilter === 'OPEN') return p.isOpen || p.type === 'OPEN' || p.authentication?.toLowerCase().includes('open');
 
     return true;
   });
 
   const handleCopy = (pass, ssid) => {
-    if (pass) {
-      navigator.clipboard.writeText(pass);
-      onShowToast(`Copied password for "${ssid}"`);
-      onLogTerminal(`COPIED PASSWORD FOR [${ssid}] TO CLIPBOARD`, 'success');
-      onPlaySound('click');
-    }
+    const copyVal = pass || 'No Password Required';
+    navigator.clipboard.writeText(copyVal);
+    onShowToast(`Copied credential for "${ssid}"`);
+    onLogTerminal(`COPIED CREDENTIAL FOR [${ssid}] TO CLIPBOARD`, 'success');
+    onPlaySound('click');
   };
 
   const handleCopyAll = () => {
-    let text = '=== EXTRACTED WI-FI PASSWORDS ===\n';
-    profiles.forEach(p => {
+    let text = '=== EXTRACTED WI-FI CREDENTIALS & AIRWAVES ===\n';
+    allVaultProfiles.forEach(p => {
       text += `${p.ssid} : ${p.password}\n`;
     });
     navigator.clipboard.writeText(text);
-    onShowToast(`Copied all ${profiles.length} Wi-Fi credentials!`);
-    onLogTerminal(`BULK COPIED ${profiles.length} WI-FI CREDENTIALS TO CLIPBOARD`, 'success');
+    onShowToast(`Copied all ${allVaultProfiles.length} Wi-Fi credentials & airwaves!`);
+    onLogTerminal(`BULK COPIED ${allVaultProfiles.length} WI-FI CREDENTIALS TO CLIPBOARD`, 'success');
     onPlaySound('click');
   };
 
@@ -88,7 +143,7 @@ export default function CredentialVault({
         <div className="header-title">
           <Key size={16} color="var(--neon-green)" style={{ marginRight: 4 }} />
           <h3>WI-FI CREDENTIAL VAULT</h3>
-          <span className="badge-counter">{profiles.length} PROFILES</span>
+          <span className="badge-counter">{allVaultProfiles.length} NETWORKS</span>
         </div>
         
         <div className="vault-summary-pills">
@@ -117,7 +172,7 @@ export default function CredentialVault({
 
         <div className="filter-tabs">
           {[
-            { id: 'ALL', label: `ALL NETWORKS (${profiles.length})` },
+            { id: 'ALL', label: `ALL NETWORKS (${allVaultProfiles.length})` },
             { id: 'SURROUNDING', label: `📡 LIVE SURROUNDING (${nearbyNetworks.length})` },
             { id: 'WPA3', label: `WPA3 HIGH-SEC (${wpa3Count})` },
             { id: 'WPA2', label: `WPA2 (${wpa2Count})` },
@@ -184,7 +239,7 @@ export default function CredentialVault({
       {/* Footer */}
       <div className="vault-footer">
         <div className="footer-meta">
-          <span>Showing {filteredProfiles.length} of {profiles.length} profiles</span>
+          <span>Showing {filteredProfiles.length} of {allVaultProfiles.length} networks</span>
         </div>
         <div className="footer-actions">
           <motion.button 

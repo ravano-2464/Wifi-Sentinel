@@ -11,12 +11,12 @@ export default function VaultTableRow({
   onShowQr
 }) {
   const passDisplay = isRevealed 
-    ? (profile.password || '(No Password)') 
-    : (profile.isOpen ? '(Open Network)' : '••••••••••••');
+    ? (profile.password || (profile.isOpen ? '(Open / No Password)' : '(No Password)')) 
+    : (profile.isOpen ? '(Open / No Password)' : '••••••••••••');
 
   let badgeClass = 'security-badge';
   if (profile.type === 'WPA3' || profile.authentication?.includes('WPA3')) badgeClass += ' wpa3';
-  else if (profile.isOpen) badgeClass += ' open';
+  else if (profile.isOpen || profile.type === 'OPEN' || profile.authentication?.toLowerCase().includes('open')) badgeClass += ' open';
 
   return (
     <motion.tr 
@@ -32,15 +32,20 @@ export default function VaultTableRow({
         <div className="table-ssid">
           <span>{profile.ssid}</span>
           {isConnected && <span className="active-tag">CONNECTED</span>}
+          {!isConnected && profile.isLive && (
+            <span className="live-tag" title={`Live broadcast beacon: ${profile.signal || 85}% signal`}>
+              📡 {profile.signal || 85}%
+            </span>
+          )}
         </div>
       </td>
       <td>
-        <span className={badgeClass}>{profile.type || 'WPA2'}</span>
-        <span className="cipher-sub">{profile.cipher || 'CCMP'}</span>
+        <span className={badgeClass}>{profile.type || (profile.isOpen ? 'OPEN' : 'WPA2')}</span>
+        <span className="cipher-sub">{profile.cipher || (profile.isOpen ? 'None' : 'CCMP')}</span>
       </td>
       <td>
         <div className="pass-field-wrapper">
-          <span className={`table-pass-text ${isRevealed ? '' : (profile.isOpen ? 'open' : 'masked')}`}>
+          <span className={`table-pass-text ${profile.isOpen ? 'open' : (isRevealed ? '' : 'masked')}`}>
             {passDisplay}
           </span>
         </div>
