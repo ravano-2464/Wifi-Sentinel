@@ -1,7 +1,7 @@
 # ⚡ WIFI-SENTINEL v2.0
 
 > **Futuristic Cyberpunk Wi-Fi Password Extractor, Tactical Radar & Telemetry Analyzer**  
-> Built with **React 18 + Vite** powered by Windows Native `netsh` Subsystem engine.
+> Engineered with **React 18 + Vite** and powered by Windows Native `netsh` Subsystem engine.
 
 ---
 
@@ -9,7 +9,7 @@
 
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.4.11-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com/windows)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com/windows)
 [![License](https://img.shields.io/badge/License-MIT-00FFA3?style=for-the-badge)](LICENSE)
 
 </div>
@@ -18,116 +18,119 @@
 
 ## 🌟 Overview
 
-**Wifi Sentinel** adalah aplikasi audit dan manajemen jaringan Wi-Fi lokal dengan antarmuka futuristik bertema **Cyberpunk HUD**. Aplikasi ini memungkinkan Anda melihat seluruh riwayat password Wi-Fi yang tersimpan di sistem Windows secara *cleartext*, memantau telemetri koneksi aktif (*real-time uplink*), memindai jaringan di sekitar (*tactical radar*), membuat kode QR untuk koneksi instan ke smartphone, serta mengekspor laporan audit jaringan.
+**Wifi Sentinel** is a local wireless network audit and telemetry analysis tool designed with a futuristic **Cyberpunk Tactical HUD** aesthetic. It allows users and network administrators to effortlessly recover stored Wi-Fi credentials in cleartext, monitor active wireless interface metrics in real time, scan nearby access points via a tactical radar, generate instant QR codes for mobile device onboarding, and export comprehensive audit reports.
 
 ---
 
-## 🚀 Fitur Utama
+## 🚀 Key Features
 
-- 🔑 **Credential Vault (Cleartext Password Revealer)**
-  - Menampilkan seluruh profil Wi-Fi yang pernah terhubung pada perangkat Windows Anda.
-  - Membuka password Wi-Fi asli (*cleartext key*) dengan satu klik tanpa batasan GUI Windows.
-  - Fitur pencarian instan dan filter keamanan (WPA3, WPA2, Open / No Password).
+- 🔑 **Credential Vault (Cleartext Key Revealer)**
+  - Automatically indexes all saved wireless profiles stored on your Windows system.
+  - One-click cleartext password extraction without navigating cumbersome Windows GUI menus.
+  - Real-time search filter and security categorization (`WPA3`, `WPA2`, `WEP`, `OPEN`).
+  - Batch reveal/hide options and instant clipboard copy.
 
 - 📡 **Active Uplink Telemetry HUD**
-  - Pemantauan status interface Wi-Fi secara *real-time* (SSID aktif, BSSID, Channel, Band 2.4 GHz / 5 GHz).
-  - Indikator kuat sinyal (dBm / Signal %), kecepatan transmisi & penerimaan (Rx/Tx Mbps).
-  - Tipe cipher & enkripsi keamanan aktif.
+  - Real-time active Wi-Fi interface monitoring (SSID, BSSID, Channel, 2.4 GHz / 5 GHz Band).
+  - Accurate signal strength diagnostics (RSSI dBm & percentage indicator).
+  - Rx / Tx link rates (Mbps), radio type (`802.11ax/ac/n`), cipher suite, and authentication mode.
 
-- 🎯 **Tactical Radar (Nearby Wi-Fi Scanner)**
-  - Memindai seluruh *Access Point* (AP) di sekitar dalam jangkauan radar.
-  - Deteksi otomatis jaringan yang sudah tersimpan vs jaringan baru / terbuka.
-  - Visualisasi spektrum sinyal & keamanan.
+- 🎯 **Tactical Radar (Nearby Access Point Scanner)**
+  - Comprehensive BSSID scanner capturing all nearby wireless networks in range.
+  - Automatic cross-referencing between nearby SSIDs and saved credentials.
+  - Channel distribution and signal quality visualization.
 
-- 📱 **Instant Wi-Fi QR Code Generator**
-  - Membuat QR Code Wi-Fi standard IEEE (`WIFI:S:...;T:...;P:...;;`) secara otomatis.
-  - Scan langsung menggunakan kamera smartphone (iOS / Android) tanpa perlu mengetik password manual.
+- 📱 **Instant Mobile QR Code Onboarding**
+  - Generates standard IEEE Wi-Fi QR codes (`WIFI:S:...;T:...;P:...;;`) on the fly.
+  - Scan directly using iOS or Android camera apps to connect instantly without typing complex passwords.
 
 - 💾 **Multi-Format Export & Audit Reporting**
-  - Ekspor seluruh database password yang tersimpan ke format **JSON**, **CSV**, atau **Plain Text / TXT**.
-  - Siap dicetak (*Print Report*) untuk dokumentasi administrasi jaringan.
+  - Export your entire saved credential vault into **JSON**, **CSV**, or **Plain Text (TXT)**.
+  - Formatted print-ready layout for physical documentation and network archival.
 
 - 🔊 **Synthesized Cyberpunk Audio FX**
-  - Efek suara taktis interaktif bertenaga *Web Audio API* sintetis bawaan (tanpa file audio eksternal).
+  - Interactive tactical audio feedback powered by native *Web Audio API* synthesis (zero external audio asset overhead).
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-| Komponen | Teknologi / Library |
+| Layer | Technology / Implementation |
 |---|---|
-| **Frontend Framework** | React 18 (Hooks, Modern Functional Components) |
-| **Build Tool & Dev Server** | Vite 5 (Ultra-fast HMR) |
-| **Styling & Theme** | Modern Glassmorphism & Cyberpunk Neon CSS |
+| **Frontend Framework** | React 18 (Functional components, custom Hooks) |
+| **Bundler & Dev Server** | Vite 5 (Lightning-fast HMR) |
+| **Design System** | Custom Cyberpunk Glassmorphism & Neon HUD (Pure CSS) |
 | **Icons** | Lucide React |
-| **Backend Integration** | Native Node.js `child_process` + Windows `netsh wlan` (UTF-8) |
-| **Audio Engine** | Native Web Audio API Synthesizer |
+| **System Interface** | Native Node.js `child_process` + Windows `netsh wlan` (UTF-8) |
+| **Audio Engine** | Web Audio API Oscillator Synthesizer |
+| **QR Engine** | Canvas-based IEEE Wi-Fi string encoder |
 
 ---
 
-## 📋 Prasyarat Sistem
+## 📋 System Requirements
 
-1. **Sistem Operasi**: Windows 10 atau Windows 11 (memerlukan subsystem WLAN).
-2. **Node.js**: Versi 16.0.0 atau yang lebih baru. ([Unduh Node.js](https://nodejs.org/))
-3. **Wi-Fi Card / Adapter**: Interface Wi-Fi aktif.
+- **Operating System**: Windows 10 or Windows 11 (requires native WLAN service).
+- **Node.js**: Version `16.0.0` or newer. ([Download Node.js](https://nodejs.org/))
+- **Hardware**: Active Wi-Fi network interface card / adapter.
 
 ---
 
-## ⚡ Panduan Instalasi & Menjalankan
+## ⚡ Quick Start Guide
 
-### Cara 1: Menggunakan Script Cepat (Windows)
-Cukup klik ganda (double-click) file:
+### Option 1: Quick Launcher (Windows)
+Double-click the included batch script in the root directory:
 ```bat
 start.bat
 ```
 
 ---
 
-### Cara 2: Melalui Terminal / Command Prompt
+### Option 2: Command Line Interface (CLI)
 
-1. **Clone repository ini:**
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/ravano-2464/Wifi-Sentinel.git
    cd Wifi-Sentinel
    ```
 
-2. **Install dependensi:**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Jalankan aplikasi (Development Server):**
+3. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-4. Buka browser pada alamat:
+4. **Access the HUD:**
+   Open your browser and navigate to:
    ```
    http://localhost:3000
    ```
 
 ---
 
-## 🔌 API Endpoints (Vite Middleware & Standalone Server)
+## 🔌 API Reference (Vite Middleware & Local Server)
 
-Server menyediakan REST API lokal untuk mengakses telemetri WLAN Windows:
+The internal engine exposes local REST endpoints to interface with the Windows WLAN subsystem:
 
-| Endpoint | Method | Deskripsi |
+| Endpoint | Method | Description |
 |---|---|---|
-| `/api/wifi/current` | `GET` | Mengambil status interface & telemetri Wi-Fi yang sedang aktif |
-| `/api/wifi/profiles` | `GET` | Mengambil seluruh daftar profil & password tersimpan |
-| `/api/wifi/scan` | `GET` | Memindai jaringan Wi-Fi di sekitar (BSSID scan) |
-| `/api/wifi/full-audit` | `GET` | Mengambil data gabungan lengkap untuk audit |
+| `/api/wifi/current` | `GET` | Fetches active interface status, signal metrics, and uplink telemetry |
+| `/api/wifi/profiles` | `GET` | Retrieves all saved user profiles along with cleartext credentials |
+| `/api/wifi/scan` | `GET` | Scans for all nearby wireless access points (BSSID scan) |
+| `/api/wifi/full-audit` | `GET` | Returns consolidated telemetry, profiles, and nearby scan payload |
 
 ---
 
-## 🔒 Keamanan & Penafian (Disclaimer)
+## 🔒 Security & Legal Disclaimer
 
-> **Pemberitahuan Penting:**  
-> Aplikasi ini dirancang untuk tujuan diagnosis jaringan, pemulihan kredensial milik sendiri (*credential recovery*), dan edukasi administrasi sistem. Aplikasi ini hanya membaca profil Wi-Fi yang sudah pernah terhubung dan tersimpan pada sistem operasi komputer Anda secara legal melalui utilitas resmi sistem operasi Windows (`netsh`).
+> **Important Notice:**  
+> This application is created solely for personal credential recovery, network administration, and educational security auditing. It strictly accesses Wi-Fi profiles that have already been authorized, authenticated, and saved on the local Windows machine through official operating system APIs (`netsh`).
 
 ---
 
-## 📄 Lisensi
+## 📄 License
 
-Didistribusikan di bawah lisensi **MIT License**. Lihat file `LICENSE` untuk informasi lebih lanjut.
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
