@@ -7,6 +7,7 @@ import TacticalRadar from './components/TacticalRadar';
 import TerminalConsole from './components/TerminalConsole';
 import CredentialVault from './components/CredentialVault';
 import QrModal from './components/QrModal';
+import HackerTerminalModal from './components/HackerTerminalModal';
 import ToastContainer from './components/ToastContainer';
 import { useWifiTelemetry } from './hooks/useWifiTelemetry';
 import { useAudioFx } from './hooks/useAudioFx';
@@ -18,6 +19,7 @@ export default function App() {
   const [logs, setLogs] = useState([
     { time: formatTime(), text: 'CYBER//WIFI-SENTINEL INITIALIZED // GSAP + Framer Motion Animation Engine Online.', type: 'info' }
   ]);
+  const [isHackerModalOpen, setIsHackerModalOpen] = useState(false);
 
   // GSAP Entrance & Boot-Up Sequence Animation
   useEffect(() => {
@@ -110,6 +112,7 @@ export default function App() {
         currentWifi={currentWifi}
         onShowToast={showToast}
         onPlaySound={playSound}
+        onOpenHackerModal={() => setIsHackerModalOpen(true)}
       />
 
       {/* Hero Active Uplink Matrix */}
@@ -138,6 +141,12 @@ export default function App() {
           <TerminalConsole 
             logs={logs}
             onClearLogs={() => setLogs([{ time: formatTime(), text: 'NETSH CONSOLE CLEARED.', type: 'info' }])}
+            onOpenHackerModal={() => setIsHackerModalOpen(true)}
+            profiles={profiles}
+            nearbyNetworks={nearbyNetworks}
+            currentWifi={currentWifi}
+            audioEnabled={audioEnabled}
+            onRefresh={refreshAudit}
           />
         </aside>
 
@@ -180,6 +189,22 @@ export default function App() {
             onClose={() => setQrModalData(null)}
             data={qrModalData}
             audioEnabled={audioEnabled}
+            onShowToast={showToast}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Interactive Hacker Terminal Modal */}
+      <AnimatePresence>
+        {isHackerModalOpen && (
+          <HackerTerminalModal 
+            isOpen={isHackerModalOpen}
+            onClose={() => setIsHackerModalOpen(false)}
+            profiles={profiles}
+            nearbyNetworks={nearbyNetworks}
+            currentWifi={currentWifi}
+            audioEnabled={audioEnabled}
+            onRefresh={refreshAudit}
             onShowToast={showToast}
           />
         )}

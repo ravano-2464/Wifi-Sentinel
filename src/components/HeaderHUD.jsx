@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radar, Volume2, VolumeX, Zap, Download, Database, FileText, Table } from 'lucide-react';
+import { Radar, Volume2, VolumeX, Zap, Download, Database, FileText, Table, Terminal } from 'lucide-react';
 import { ExportService } from '../services/exportService';
 import { formatTime } from '../utils/helpers';
 
@@ -12,7 +12,8 @@ export default function HeaderHUD({
   profiles, 
   currentWifi,
   onShowToast,
-  onPlaySound
+  onPlaySound,
+  onOpenHackerModal
 }) {
   const [clock, setClock] = useState(formatTime);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -84,6 +85,17 @@ export default function HeaderHUD({
         >
           {audioEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
           <span>{audioEnabled ? 'AUDIO: ON' : 'AUDIO: MUTED'}</span>
+        </motion.button>
+
+        <motion.button 
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => { onPlaySound('click'); onOpenHackerModal(); }} 
+          className="cyber-btn sm hacker-hud-btn"
+          title="Launch Interactive Matrix Hacker CLI Suite"
+        >
+          <Terminal size={14} />
+          <span>HACKER CLI</span>
         </motion.button>
 
         <motion.button 

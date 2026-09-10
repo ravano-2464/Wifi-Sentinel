@@ -55,12 +55,18 @@ The entire interface is enriched with **GSAP** timeline boot sequences and **Fra
   - Export your entire saved credential vault into **JSON**, **CSV**, or **Plain Text (TXT)**.
   - Formatted print-ready layout for physical documentation and network archival.
 
+- 💻 **Interactive Hacker CLI Terminal & Matrix Decryption Suite**
+  - **Embedded Mini CLI**: Quick-access command line input with autocomplete and history navigation.
+  - **Fullscreen Hacker Terminal Overlay**: High-tech popup console with background digital matrix rain canvas FX.
+  - **Tactical Exploitation Commands**: Supports `airdump`, `scan`, `crack <SSID>`, `recon <SSID>`, `deauth <SSID>`, `vault`, `ping <host>`, `neofetch`, `macchanger`, `matrix`, and dynamic theme switching (`green`, `cyan`, `purple`, `amber`).
+  - **Live Brute-Force Cracking Visualizer**: Wordlist iteration animations, rolling hex MD5/SHA256 calculations, real-time keys/sec rate counters, and audio feedback.
+
 - 🎬 **Dynamic GSAP & Framer Motion Animation Engine**
   - **GSAP Boot Sequence**: Staggered HUD entrance timelines, card reveal choreography, and glowing grid initializers.
   - **Framer Motion**: Spring physics on buttons, live toast notifications, modal popups, and animated speed gauges.
 
 - 🔊 **Synthesized Cyberpunk Audio FX**
-  - Interactive tactical audio feedback powered by native *Web Audio API* synthesis (zero external audio asset overhead).
+  - Interactive tactical audio feedback powered by native *Web Audio API* synthesis (key taps, decode frequencies, success fanfare, radar pings).
 
 ---
 
@@ -69,13 +75,14 @@ The entire interface is enriched with **GSAP** timeline boot sequences and **Fra
 | Layer | Technology / Implementation |
 |---|---|
 | **Frontend Framework** | React 18 (Functional components, custom Hooks) |
+| **Hacker CLI & Visuals** | Interactive Shell CLI + Matrix Canvas Rain + Brute-Force Visualizer |
 | **Animation Engines** | GSAP 3 (HUD Timelines) + Framer Motion (Spring UI & Layouts) |
 | **Bundler & Dev Server** | Vite 5 (Lightning-fast HMR) |
 | **Design System** | Custom Cyberpunk Glassmorphism & Neon HUD (Pure CSS) |
 | **Icons** | Lucide React |
 | **System Interface** | Native Node.js `child_process` + Windows `netsh wlan` (UTF-8) |
 | **Audio Engine** | Web Audio API Oscillator Synthesizer |
-| **QR Engine** | Canvas-based IEEE Wi-Fi string encoder |
+| **QR Engine** | Standard `qrcode` library (IEEE ZXing Wi-Fi Protocol) |
 
 ---
 
