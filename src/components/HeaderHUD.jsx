@@ -50,8 +50,8 @@ export default function HeaderHUD({
             <Radar className="radar-lucide-icon" size={18} />
           </motion.div>
           <div className="brand-text">
-            <h1 className="glitch-text" data-text="WIFI//SENTINEL">WIFI//SENTINEL</h1>
-            <span className="sub-glitch">MODULAR REACT 18 // TACTICAL AIRSPACE SCANNER</span>
+            <h1 className="glitch-text" data-text="WIFI SENTINEL">WIFI SENTINEL</h1>
+            <span className="sub-glitch">TACTICAL AIRSPACE SCANNER</span>
           </div>
         </div>
       </div>

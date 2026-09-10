@@ -383,9 +383,9 @@ export default function TacticalRadar({
       <div className="card-header">
         <div className="header-title">
           <span className="prefix">//</span>
-          <h3>AIRSPACE TACTICAL RADAR</h3>
+          <h3>TACTICAL RADAR</h3>
         </div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="radar-mode-switcher">
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -398,7 +398,7 @@ export default function TacticalRadar({
             title="Scan real-time broadcast signals in physical range using your Wi-Fi card adapter"
           >
             <Radio size={11} />
-            <span>LIVE OMNI SCAN</span>
+            <span>LIVE OMNI</span>
           </motion.button>
 
           <motion.button 
@@ -413,7 +413,7 @@ export default function TacticalRadar({
             title="Show live broadcasts + saved offline profiles"
           >
             <Layers size={11} />
-            <span>HYBRID (LIVE + VAULT)</span>
+            <span>HYBRID</span>
           </motion.button>
         </div>
       </div>

@@ -4,12 +4,12 @@ import { Terminal, X, Play, RefreshCw, Cpu, ShieldAlert, Wifi, Zap, Maximize2, M
 import { playCyberSound } from '../utils/audio';
 
 const ASCII_BANNER = `
- ██████╗██╗   ██╗██████╗ ███████╗██████╗ 
-██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
-██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝
-██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗
-╚██████╗   ██║   ██████╔╝███████╗██║  ██║
- ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+██╗    ██╗██╗███████╗██╗   ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     
+██║    ██║██║██╔════╝██║   ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     
+██║ █╗ ██║██║█████╗  ██║   ███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     
+██║███╗██║██║██╔══╝  ██║   ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     
+╚███╔███╔╝██║██║     ██║   ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
+ ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
 [ TACTICAL WI-FI EXPLOITATION & TELEMETRY CONSOLE v2.5 ]
 Type 'help' to list tactical commands.
 `;
@@ -172,11 +172,27 @@ export default function HackerTerminalModal({
         setCrackProgress(100);
         playCyberSound('success', audioEnabled);
 
+        let hash = 0;
+        for (let i = 0; i < targetSsid.length; i++) hash = ((hash << 5) - hash) + targetSsid.charCodeAt(i);
+        const sub = (Math.abs(hash) % 150) + 1;
+        const clientHost = (Math.abs(hash * 7) % 200) + 10;
+        const isConn = currentWifi && currentWifi.connected && 
+          (currentWifi.ssid?.toLowerCase() === targetSsid.toLowerCase() || currentWifi.profile?.toLowerCase() === targetSsid.toLowerCase());
+
+        const ipAddress = isConn ? (currentWifi.ipv4 || currentWifi.ipAddress || '192.168.1.108') : `192.168.${sub}.${clientHost}`;
+        const gateway = isConn ? (currentWifi.gateway || '192.168.1.1') : `192.168.${sub}.1`;
+        const subnet = '255.255.255.0 (/24)';
+        const dns = isConn ? '8.8.8.8, 1.1.1.1' : `192.168.${sub}.1, 8.8.8.8`;
+
         addLog('success', '=======================================================');
         addLog('success', `[+] KEY FOUND! [ ${realPassword || '(Open Network / No Key)'} ]`);
-        addLog('success', `[+] Master PMK: ${Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('')}`);
-        addLog('success', `[+] Decrypted Target: ${targetSsid}`);
-        addLog('success', `[+] Key Status: ${isKnown ? 'EXTRACTED FROM LOCAL HARDWARE VAULT' : 'SIMULATED HASH RECOVERED'}`);
+        addLog('success', `[+] Target ESSID       : ${targetSsid}`);
+        addLog('success', `[+] Master PMK Hash    : ${Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('')}`);
+        addLog('info',    `[+] Router Gateway     : ${gateway}`);
+        addLog('info',    `[+] Assigned Client IP : ${ipAddress}`);
+        addLog('raw',     `[+] Subnet Mask        : ${subnet}`);
+        addLog('raw',     `[+] DNS Server         : ${dns}`);
+        addLog('success', `[+] Key Status         : ${isKnown ? 'EXTRACTED FROM LOCAL HARDWARE VAULT' : 'SIMULATED HASH RECOVERED'}`);
         addLog('success', '=======================================================');
         if (onShowToast) onShowToast(`Cracked key for ${targetSsid}: ${realPassword}`);
       }
@@ -197,7 +213,7 @@ export default function HackerTerminalModal({
 
     const parts = raw.split(' ');
     const cmd = parts[0].toLowerCase();
-    const arg = parts.slice(1).join(' ').trim();
+    const arg = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
     switch (cmd) {
       case 'help':
@@ -267,10 +283,23 @@ export default function HackerTerminalModal({
         }
         const target = profiles.find(p => p.ssid.toLowerCase() === arg.toLowerCase()) || 
                        nearbyNetworks.find(n => n.ssid.toLowerCase() === arg.toLowerCase());
+
+        let hash = 0;
+        for (let i = 0; i < arg.length; i++) hash = ((hash << 5) - hash) + arg.charCodeAt(i);
+        const sub = (Math.abs(hash) % 150) + 1;
+        const clientHost = (Math.abs(hash * 7) % 200) + 10;
+        const isConn = currentWifi && currentWifi.connected && 
+          (currentWifi.ssid?.toLowerCase() === arg.toLowerCase() || currentWifi.profile?.toLowerCase() === arg.toLowerCase());
+
+        const ipAddress = isConn ? (currentWifi.ipv4 || currentWifi.ipAddress || '192.168.1.108') : `192.168.${sub}.${clientHost}`;
+        const gateway = isConn ? (currentWifi.gateway || '192.168.1.1') : `192.168.${sub}.1`;
+
         addLog('info', `[*] EXECUTING DEEP RF RECONNAISSANCE: [${arg}]`);
         setTimeout(() => {
           addLog('success', `[+] Target ESSID       : ${arg}`);
           addLog('success', `[+] BSSID MAC Address  : ${target?.bssid || 'F4:2D:06:AD:27:34'}`);
+          addLog('info',    `[+] Router Gateway     : ${gateway}`);
+          addLog('info',    `[+] Client IPv4        : ${ipAddress}`);
           addLog('success', `[+] Radio Frequencies  : ${target?.band || '2.4 GHz / 5 GHz Dual-Band'}`);
           addLog('success', `[+] Channel Allocation : Channel ${target?.channel || '8'} (2447 MHz)`);
           addLog('success', `[+] Security Protocol  : ${target?.authentication || target?.type || 'WPA2-Personal (AES-CCMP)'}`);

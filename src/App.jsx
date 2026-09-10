@@ -17,7 +17,7 @@ export default function App() {
   const containerRef = useRef(null);
   const [toasts, setToasts] = useState([]);
   const [logs, setLogs] = useState([
-    { time: formatTime(), text: 'CYBER//WIFI-SENTINEL INITIALIZED // GSAP + Framer Motion Animation Engine Online.', type: 'info' }
+    { time: formatTime(), text: 'WIFI SENTINEL INITIALIZED // Tactical Airspace Engine Online.', type: 'info' }
   ]);
   const [isHackerModalOpen, setIsHackerModalOpen] = useState(false);
 
@@ -174,7 +174,7 @@ export default function App() {
       {/* HUD Footer */}
       <footer className="hud-footer">
         <div className="footer-left">
-          <span>CYBER//WIFI-SENTINEL (REACT 18 + VITE)</span> • <span>GSAP & FRAMER MOTION ACTIVE</span>
+          <span>WIFI SENTINEL</span> • <span>GSAP & FRAMER MOTION ACTIVE</span>
         </div>
         <div className="footer-right">
           <span className="status-ok">● SYSTEM OPERATIONAL</span>
