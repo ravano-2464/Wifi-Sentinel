@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Eye, EyeOff, Copy, Key } from 'lucide-react';
 import VaultTableRow from './VaultTableRow';
 
@@ -115,43 +116,24 @@ export default function CredentialVault({
         </div>
 
         <div className="filter-tabs">
-          <button 
-            className={`filter-tab ${activeFilter === 'ALL' ? 'active' : ''}`}
-            onClick={() => onFilterChange('ALL')}
-          >
-            ALL NETWORKS ({profiles.length})
-          </button>
-          <button 
-            className={`filter-tab ${activeFilter === 'SURROUNDING' ? 'active' : ''}`}
-            onClick={() => onFilterChange('SURROUNDING')}
-            title="Show only Wi-Fi networks physically broadcasting around you right now"
-          >
-            📡 LIVE SURROUNDING ({nearbyNetworks.length})
-          </button>
-          <button 
-            className={`filter-tab ${activeFilter === 'WPA3' ? 'active' : ''}`}
-            onClick={() => onFilterChange('WPA3')}
-          >
-            WPA3 HIGH-SEC ({wpa3Count})
-          </button>
-          <button 
-            className={`filter-tab ${activeFilter === 'WPA2' ? 'active' : ''}`}
-            onClick={() => onFilterChange('WPA2')}
-          >
-            WPA2 ({wpa2Count})
-          </button>
-          <button 
-            className={`filter-tab ${activeFilter === '5G' ? 'active' : ''}`}
-            onClick={() => onFilterChange('5G')}
-          >
-            5G BANDS
-          </button>
-          <button 
-            className={`filter-tab ${activeFilter === 'OPEN' ? 'active' : ''}`}
-            onClick={() => onFilterChange('OPEN')}
-          >
-            OPEN ({openCount})
-          </button>
+          {[
+            { id: 'ALL', label: `ALL NETWORKS (${profiles.length})` },
+            { id: 'SURROUNDING', label: `📡 LIVE SURROUNDING (${nearbyNetworks.length})` },
+            { id: 'WPA3', label: `WPA3 HIGH-SEC (${wpa3Count})` },
+            { id: 'WPA2', label: `WPA2 (${wpa2Count})` },
+            { id: '5G', label: '5G BANDS' },
+            { id: 'OPEN', label: `OPEN (${openCount})` }
+          ].map(tab => (
+            <motion.button 
+              key={tab.id}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={`filter-tab ${activeFilter === tab.id ? 'active' : ''}`}
+              onClick={() => onFilterChange(tab.id)}
+            >
+              {tab.label}
+            </motion.button>
+          ))}
         </div>
       </div>
 
@@ -168,26 +150,33 @@ export default function CredentialVault({
             </tr>
           </thead>
           <tbody>
-            {filteredProfiles.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="loading-state">
-                  <span>NO WI-FI CREDENTIAL MATCHES FOUND FOR "{searchQuery}"</span>
-                </td>
-              </tr>
-            ) : (
-              filteredProfiles.map((p, idx) => (
-                <VaultTableRow
-                  key={p.name}
-                  profile={p}
-                  index={idx}
-                  isConnected={Boolean(currentSsid && (p.ssid === currentSsid || p.name === currentSsid))}
-                  isRevealed={Boolean(revealedMap[p.name])}
-                  onToggleReveal={onToggleReveal}
-                  onCopy={handleCopy}
-                  onShowQr={onShowQr}
-                />
-              ))
-            )}
+            <AnimatePresence mode="popLayout">
+              {filteredProfiles.length === 0 ? (
+                <motion.tr 
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <td colSpan="5" className="loading-state">
+                    <span>NO WI-FI CREDENTIAL MATCHES FOUND FOR "{searchQuery}"</span>
+                  </td>
+                </motion.tr>
+              ) : (
+                filteredProfiles.map((p, idx) => (
+                  <VaultTableRow
+                    key={p.name}
+                    profile={p}
+                    index={idx}
+                    isConnected={Boolean(currentSsid && (p.ssid === currentSsid || p.name === currentSsid))}
+                    isRevealed={Boolean(revealedMap[p.name])}
+                    onToggleReveal={onToggleReveal}
+                    onCopy={handleCopy}
+                    onShowQr={onShowQr}
+                  />
+                ))
+              )}
+            </AnimatePresence>
           </tbody>
         </table>
       </div>
@@ -198,14 +187,24 @@ export default function CredentialVault({
           <span>Showing {filteredProfiles.length} of {profiles.length} profiles</span>
         </div>
         <div className="footer-actions">
-          <button className="cyber-btn sm" onClick={onRevealAll}>
+          <motion.button 
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="cyber-btn sm" 
+            onClick={onRevealAll}
+          >
             {allRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
             <span>{allRevealed ? 'CONCEAL ALL PASSWORDS' : 'REVEAL ALL PASSWORDS'}</span>
-          </button>
-          <button className="cyber-btn sm accent" onClick={handleCopyAll}>
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="cyber-btn sm accent" 
+            onClick={handleCopyAll}
+          >
             <Copy size={13} />
             <span>COPY ALL AS LIST</span>
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>

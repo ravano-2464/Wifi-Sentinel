@@ -102,6 +102,7 @@ body.cyber-theme {
   border-radius: 4px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   position: relative;
+  z-index: 100;
 }
 
 .hud-header::before {
@@ -257,6 +258,19 @@ body.cyber-theme {
   box-shadow: 0 0 15px rgba(255, 183, 0, 0.4);
 }
 
+.cyber-btn.omni {
+  background: rgba(217, 70, 239, 0.12);
+  border-color: rgba(217, 70, 239, 0.5);
+  color: #f0abfc;
+}
+
+.cyber-btn.omni:hover, .cyber-btn.active-omni {
+  background: rgba(217, 70, 239, 0.28);
+  border-color: #d946ef;
+  color: #f5d0fe;
+  box-shadow: 0 0 14px rgba(217, 70, 239, 0.55);
+}
+
 .cyber-btn.sm {
   padding: 6px 12px;
   font-size: 10px;
@@ -264,21 +278,22 @@ body.cyber-theme {
 
 .dropdown-wrapper {
   position: relative;
+  z-index: 101;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   right: 0;
-  margin-top: 6px;
-  background: var(--bg-surface);
+  background: #080d14;
   border: 1px solid var(--neon-yellow);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 15px rgba(255, 183, 0, 0.2);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 183, 0, 0.35);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  min-width: 170px;
-  z-index: 100;
+  min-width: 185px;
+  z-index: 1000;
+  overflow: hidden;
 }
 
 .dropdown-menu a {
@@ -361,6 +376,11 @@ body.cyber-theme {
 /* ==========================================================================
    HERO: ACTIVE UPLINK MATRIX
    ========================================================================== */
+.active-uplink-section {
+  position: relative;
+  z-index: 1;
+}
+
 .uplink-hero-card {
   border-color: rgba(0, 255, 157, 0.35);
   box-shadow: 0 0 25px rgba(0, 255, 157, 0.12), inset 0 0 15px rgba(0, 255, 157, 0.03);
@@ -744,7 +764,7 @@ body.cyber-theme {
    ========================================================================== */
 .main-workspace-grid {
   display: grid;
-  grid-template-columns: 460px 1fr;
+  grid-template-columns: 480px 1fr;
   gap: 20px;
 }
 
@@ -781,23 +801,26 @@ body.cyber-theme {
   border: 1px solid rgba(0, 255, 157, 0.3);
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: inset 0 0 30px rgba(0, 255, 157, 0.1);
+  box-shadow: inset 0 0 35px rgba(0, 255, 157, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 6px;
 }
 
 .radar-sweep-coords {
   position: absolute;
-  bottom: 8px;
-  right: 10px;
+  bottom: 10px;
+  right: 12px;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--neon-green);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 2px 6px;
+  background: rgba(4, 8, 14, 0.85);
+  padding: 3px 8px;
   border-radius: 2px;
-  border: 1px solid rgba(0, 255, 157, 0.3);
+  border: 1px solid rgba(0, 255, 157, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 2;
 }
 
 .radar-stats-grid {
@@ -857,7 +880,9 @@ body.cyber-theme {
   border-radius: 50%;
 }
 .leg-item .dot.active { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
+.leg-item .dot.omni { background: #d946ef; box-shadow: 0 0 6px #d946ef; }
 .leg-item .dot.saved { background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); }
+.leg-item .dot.nearby { background: var(--neon-yellow); box-shadow: 0 0 6px var(--neon-yellow); }
 .leg-item .dot.open { background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink); }
 
 /* Netsh Terminal Card */
@@ -1372,15 +1397,17 @@ body.cyber-theme {
 /* Toast Notifications */
 .cyber-toast-container {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
   z-index: 10001;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  pointer-events: none;
 }
 
 .cyber-toast {
+  pointer-events: auto;
   background: #080e16;
   border-left: 4px solid var(--neon-green);
   border-right: 1px solid rgba(0, 255, 157, 0.3);
@@ -1392,7 +1419,6 @@ body.cyber-theme {
   font-size: 12px;
   padding: 10px 16px;
   border-radius: 2px;
-  animation: toastSlide 0.25s ease-out;
 }
 
 @keyframes toastSlide {

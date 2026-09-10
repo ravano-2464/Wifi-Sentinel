@@ -105,14 +105,16 @@ async function getAllProfiles() {
 
 // Parse live nearby broadcast Wi-Fi networks
 async function getNearbyNetworks() {
-  const raw = await runCmd('netsh wlan show networks mode=bssid');
+  let raw = await runCmd('powershell -NoProfile -ExecutionPolicy Bypass -File "src/utils/scanHelper.ps1"');
+  if (!raw || !raw.includes('SSID')) {
+    raw = await runCmd('netsh wlan show networks mode=bssid');
+  }
+
   const networks = [];
-  
   if (!raw) return networks;
 
   const sections = raw.split(/SSID\s+\d+\s+:\s+/i);
-  // Remove header
-  sections.shift();
+  sections.shift(); // Remove header
 
   for (const sec of sections) {
     const lines = sec.split('\n');
@@ -134,7 +136,7 @@ async function getNearbyNetworks() {
 
     networks.push({
       ssid,
-      bssid,
+      bssid: bssid || 'N/A',
       signal,
       authentication: auth || 'WPA2-Personal',
       encryption: enc || 'CCMP',

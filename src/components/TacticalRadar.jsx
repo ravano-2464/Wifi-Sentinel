@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Radio, Layers, Eye, ShieldAlert, Wifi } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Radio, Zap, Layers, Eye, ShieldAlert, Wifi } from 'lucide-react';
 import { playCyberSound } from '../utils/audio';
 
 function simpleHash(str) {
@@ -14,13 +15,13 @@ function simpleHash(str) {
 export default function TacticalRadar({ 
   currentWifi, 
   profiles, 
-  nearbyNetworks,
+  nearbyNetworks, 
   onSelectSsid, 
   audioEnabled, 
   onLogTerminal 
 }) {
   const canvasRef = useRef(null);
-  const [radarMode, setRadarMode] = useState('AIRWAVES'); // 'AIRWAVES' | 'HYBRID'
+  const [radarMode, setRadarMode] = useState('OMNI'); // 'OMNI' (100% Real Wi-Fi Card Scan) | 'HYBRID' (Live + Stored Profiles)
   const [coordsText, setCoordsText] = useState('AZ: 0° | LIVE BEACONS: 0');
   const [lockedSsid, setLockedSsid] = useState('-');
   const [targetCount, setTargetCount] = useState(0);
@@ -35,12 +36,11 @@ export default function TacticalRadar({
   // Recompute radar nodes when surrounding networks or mode change
   useEffect(() => {
     const nodes = [];
-    const currentSsid = currentWifi && currentWifi.connected ? currentWifi.ssid : '';
 
     // Always add active connected network at primary lock position
     if (currentWifi && currentWifi.connected) {
       const activeSig = currentWifi.signalPercent || 85;
-      // Distance inversely proportional to signal: 100% signal = 0.25 (close), 30% = 0.85
+      // Distance inversely proportional to physical signal strength
       const dist = Math.max(0.2, 1.0 - (activeSig / 100) * 0.75);
       
       const activeProf = profiles.find(p => p.ssid === currentWifi.ssid || p.name === currentWifi.profile);
@@ -52,7 +52,7 @@ export default function TacticalRadar({
         channel: currentWifi.channel || '8',
         signal: activeSig,
         type: 'active',
-        status: 'CONNECTED AP',
+        status: 'CONNECTED AP (ACTIVE)',
         angle: 1.2,
         distRatio: dist,
         auth: currentWifi.authentication || 'WPA2-Personal',
@@ -64,9 +64,9 @@ export default function TacticalRadar({
       setLockedSsid('-');
     }
 
-    // 1. Process Live Surrounding Broadcasts (In-The-Air Airwaves)
     const addedSsidSet = new Set(nodes.map(n => n.ssid.toLowerCase()));
 
+    // 1. Process Genuine Real-Time Wi-Fi Card Broadcasts (In physical wireless range)
     if (nearbyNetworks && nearbyNetworks.length > 0) {
       nearbyNetworks.forEach((net, i) => {
         if (addedSsidSet.has(net.ssid.toLowerCase())) return;
@@ -75,23 +75,23 @@ export default function TacticalRadar({
         const hash = simpleHash(net.ssid + (net.bssid || i));
         const angle = (hash % 360) * (Math.PI / 180);
         const sig = net.signal || 50;
-        // Radial distance based on physical signal strength
-        const distRatio = Math.max(0.25, Math.min(0.92, 1.0 - (sig / 100) * 0.7));
+        // Radial distance directly calculated from real physical antenna signal
+        const distRatio = Math.max(0.25, Math.min(0.90, 1.0 - (sig / 100) * 0.72));
 
         let nodeType = 'nearby';
-        let status = 'AIRWAVE TARGET';
+        let status = `AIRWAVE TARGET // CH.${net.channel || 'Auto'}`;
 
         if (net.isOpen) {
           nodeType = 'open';
-          status = 'OPEN AIRWAVE (NO PASS)';
+          status = `OPEN AIRWAVE // CH.${net.channel || 'Auto'}`;
         } else if (net.isSaved) {
           nodeType = 'cracked';
-          status = 'CRACKED (KEY IN VAULT)';
+          status = `CRACKED // CH.${net.channel || 'Auto'}`;
         }
 
         nodes.push({
           ssid: net.ssid,
-          bssid: net.bssid || 'BROADCAST',
+          bssid: net.bssid || 'BROADCAST AP',
           band: net.band || '2.4 GHz',
           channel: net.channel || 'Auto',
           signal: sig,
@@ -106,7 +106,7 @@ export default function TacticalRadar({
       });
     }
 
-    // 2. If HYBRID mode is enabled, add remaining saved local profiles to outer perimeter
+    // 2. HYBRID MODE: Show live broadcasts + saved offline profiles on outer perimeter
     if (radarMode === 'HYBRID') {
       profiles.forEach((p) => {
         if (addedSsidSet.has(p.ssid.toLowerCase())) return;
@@ -115,7 +115,7 @@ export default function TacticalRadar({
         const hash = simpleHash(p.ssid);
         const angle = (hash % 360) * (Math.PI / 180);
         const is5G = p.ssid.includes('5G') || p.ssid.includes('5g');
-        const distRatio = is5G ? 0.82 + ((hash % 12) / 100) : 0.72 + ((hash % 15) / 100);
+        const distRatio = is5G ? 0.84 + ((hash % 10) / 100) : 0.76 + ((hash % 12) / 100);
 
         nodes.push({
           ssid: p.ssid,
@@ -150,7 +150,7 @@ export default function TacticalRadar({
       const height = canvas.height;
       const cx = width / 2;
       const cy = height / 2;
-      const maxRadius = width / 2 - 20;
+      const maxRadius = width / 2 - 36;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -166,14 +166,14 @@ export default function TacticalRadar({
         ctx.fillStyle = 'rgba(0, 240, 255, 0.35)';
         ctx.font = '8px "JetBrains Mono", monospace';
         const labels = ['90%', '70%', '45%', '20%'];
-        ctx.fillText(labels[i], cx + maxRadius * ratio - 18, cy - 4);
+        ctx.fillText(labels[i], cx + maxRadius * ratio - 22, cy - 5);
       });
 
       // 2. Crosshairs
       ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
       ctx.beginPath();
-      ctx.moveTo(cx, 10); ctx.lineTo(cx, height - 10);
-      ctx.moveTo(10, cy); ctx.lineTo(width - 10, cy);
+      ctx.moveTo(cx, 16); ctx.lineTo(cx, height - 16);
+      ctx.moveTo(16, cy); ctx.lineTo(width - 16, cy);
       ctx.stroke();
 
       // 3. Diagonal angle markings
@@ -225,6 +225,7 @@ export default function TacticalRadar({
         // Color coding
         let color = '#ffb700'; // Default nearby uncracked airwave
         if (node.type === 'active') color = '#00ff9d'; // Active connected
+        else if (node.type === 'omni') color = '#d946ef'; // Live Omni Discovery Node (Neon Magenta)
         else if (node.type === 'cracked') color = '#00f0ff'; // Surrounding with cracked pass
         else if (node.type === 'open') color = '#ff0055'; // Open network
         else if (node.type === 'saved') color = '#64748b'; // Saved local profile
@@ -240,15 +241,15 @@ export default function TacticalRadar({
 
         // Blip core
         ctx.beginPath();
-        ctx.arc(nx, ny, node.type === 'active' ? 5.5 : 4, 0, Math.PI * 2);
+        ctx.arc(nx, ny, node.type === 'active' ? 5.5 : (node.type === 'omni' ? 4.5 : 4), 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 9;
+        ctx.shadowBlur = node.type === 'omni' ? 12 : 9;
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Inner white dot for cracked / connected
-        if (node.isSaved || node.type === 'active') {
+        // Inner white dot for cracked / connected / omni
+        if (node.isSaved || node.type === 'active' || node.type === 'omni') {
           ctx.beginPath();
           ctx.arc(nx, ny, 1.5, 0, Math.PI * 2);
           ctx.fillStyle = '#fff';
@@ -263,31 +264,71 @@ export default function TacticalRadar({
 
       // 6. Tooltip for Hovered Node
       if (hoveredNode) {
-        const tw = 160;
-        const th = hoveredNode.password ? 64 : 52;
-        const tx = Math.min(Math.max(hoveredNode.canvasX + 10, 20), width - tw - 10);
-        const ty = Math.max(hoveredNode.canvasY - th - 10, 20);
+        const line1 = hoveredNode.ssid.length > 26 ? hoveredNode.ssid.substring(0, 24) + '...' : hoveredNode.ssid;
+        const line2 = `${hoveredNode.band} | ${hoveredNode.signal}% SIGNAL`;
+        const line3 = `${hoveredNode.status} // ${hoveredNode.auth || 'WPA2'}`;
+        const line4 = hoveredNode.password ? `KEY: ${hoveredNode.password}` : null;
 
-        ctx.fillStyle = 'rgba(4, 8, 14, 0.95)';
-        ctx.strokeStyle = hoveredNode.type === 'active' ? '#00ff9d' : '#00f0ff';
-        ctx.lineWidth = 1;
+        // Measure maximum text width for dynamic box sizing
+        ctx.font = 'bold 12px Rajdhani, sans-serif';
+        const w1 = ctx.measureText(line1).width;
+        ctx.font = '10px "JetBrains Mono", monospace';
+        const w2 = ctx.measureText(line2).width;
+        const w3 = ctx.measureText(line3).width;
+        const w4 = line4 ? ctx.measureText(line4).width : 0;
+
+        const maxTextWidth = Math.max(w1, w2, w3, w4);
+        const tw = Math.max(225, Math.ceil(maxTextWidth + 28));
+        const th = line4 ? 68 : 54;
+
+        // Smart positioning to prevent overflow outside radar canvas
+        let tx = hoveredNode.canvasX + 12;
+        if (tx + tw > width - 10) {
+          tx = hoveredNode.canvasX - tw - 12;
+        }
+        tx = Math.max(10, Math.min(tx, width - tw - 10));
+
+        let ty = hoveredNode.canvasY - th - 12;
+        if (ty < 10) {
+          ty = hoveredNode.canvasY + 16;
+        }
+        ty = Math.max(10, Math.min(ty, height - th - 10));
+
+        // Border color based on node type
+        let borderColor = '#00f0ff';
+        if (hoveredNode.type === 'active') borderColor = '#00ff9d';
+        else if (hoveredNode.type === 'omni') borderColor = '#d946ef';
+        else if (hoveredNode.type === 'open') borderColor = '#ff0055';
+
+        // Draw background and glowing border
+        ctx.fillStyle = 'rgba(4, 8, 14, 0.96)';
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1.2;
         ctx.fillRect(tx, ty, tw, th);
         ctx.strokeRect(tx, ty, tw, th);
 
-        ctx.fillStyle = '#fff';
+        // Cyberpunk decorative corner accents
+        ctx.fillStyle = borderColor;
+        ctx.fillRect(tx, ty, 3, 3);
+        ctx.fillRect(tx + tw - 3, ty, 3, 3);
+        ctx.fillRect(tx, ty + th - 3, 3, 3);
+        ctx.fillRect(tx + tw - 3, ty + th - 3, 3, 3);
+
+        // Text rendering with comfortable margins
+        ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Rajdhani, sans-serif';
-        ctx.fillText(hoveredNode.ssid.substring(0, 18), tx + 8, ty + 15);
+        ctx.fillText(line1, tx + 10, ty + 15);
 
         ctx.fillStyle = '#00ff9d';
         ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText(`${hoveredNode.band} | ${hoveredNode.signal}% SIGNAL`, tx + 8, ty + 28);
+        ctx.fillText(line2, tx + 10, ty + 28);
 
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(`${hoveredNode.status} // ${hoveredNode.auth || 'WPA2'}`, tx + 8, ty + 40);
+        ctx.fillStyle = hoveredNode.type === 'omni' ? '#f0abfc' : '#00f0ff';
+        ctx.fillText(line3, tx + 10, ty + 41);
 
-        if (hoveredNode.password) {
+        if (line4) {
           ctx.fillStyle = '#ffe600';
-          ctx.fillText(`KEY: ${hoveredNode.password}`, tx + 8, ty + 54);
+          ctx.fillText(line4, tx + 10, ty + 55);
         }
       }
 
@@ -345,31 +386,35 @@ export default function TacticalRadar({
           <h3>AIRSPACE TACTICAL RADAR</h3>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button 
-            className={`cyber-btn sm ${radarMode === 'AIRWAVES' ? 'primary' : ''}`}
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`cyber-btn sm ${radarMode === 'OMNI' ? 'primary' : ''}`}
             onClick={() => {
               playCyberSound('click', audioEnabled);
-              setRadarMode('AIRWAVES');
-              onLogTerminal('RADAR FILTER: Switched to SURROUNDING AIRWAVES ONLY.', 'info');
+              setRadarMode('OMNI');
+              onLogTerminal('RADAR FILTER: Switched to LIVE OMNI (Wi-Fi Card Hardware Scan).', 'success');
             }}
-            title="Scan only real-time broadcast signals in the surrounding room"
+            title="Scan real-time broadcast signals in physical range using your Wi-Fi card adapter"
           >
             <Radio size={11} />
-            <span>LIVE AIRWAVES</span>
-          </button>
+            <span>LIVE OMNI SCAN</span>
+          </motion.button>
 
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={`cyber-btn sm ${radarMode === 'HYBRID' ? 'accent' : ''}`}
             onClick={() => {
               playCyberSound('click', audioEnabled);
               setRadarMode('HYBRID');
-              onLogTerminal('RADAR FILTER: Switched to HYBRID (Airwaves + Saved Profiles).', 'info');
+              onLogTerminal('RADAR FILTER: Switched to HYBRID (Live Airwaves + Saved Vault Profiles).', 'info');
             }}
-            title="Show live broadcasts + saved profiles"
+            title="Show live broadcasts + saved offline profiles"
           >
             <Layers size={11} />
-            <span>HYBRID</span>
-          </button>
+            <span>HYBRID (LIVE + VAULT)</span>
+          </motion.button>
         </div>
       </div>
 
@@ -377,12 +422,12 @@ export default function TacticalRadar({
       <div className="radar-canvas-box">
         <canvas 
           ref={canvasRef} 
-          width="460" 
-          height="460"
+          width="480" 
+          height="480"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
-          style={{ cursor: 'crosshair' }}
+          style={{ cursor: 'crosshair', width: '100%', height: '100%' }}
         />
         <div className="radar-sweep-coords">{coordsText}</div>
       </div>
@@ -391,7 +436,7 @@ export default function TacticalRadar({
       <div className="radar-stats-grid">
         <div className="r-stat">
           <span className="r-label">AIRSPACE TARGETS</span>
-          <span className="r-val highlight">{targetCount} NODES</span>
+          <span className="r-val highlight">{targetCount} IN RANGE</span>
         </div>
         <div className="r-stat">
           <span className="r-label">PRIMARY LOCK</span>
@@ -399,14 +444,16 @@ export default function TacticalRadar({
         </div>
         <div className="r-stat">
           <span className="r-label">SCAN MODE</span>
-          <span className="r-val">{radarMode === 'AIRWAVES' ? 'LIVE SURROUNDING' : 'HYBRID AIRSPACE'}</span>
+          <span className="r-val">
+            {radarMode === 'OMNI' ? 'LIVE WI-FI CARD' : 'HYBRID AIRSPACE'}
+          </span>
         </div>
       </div>
 
       {/* Legend */}
       <div className="radar-legend">
         <div className="leg-item"><span className="dot active"></span> Connected</div>
-        <div className="leg-item"><span className="dot saved"></span> Cracked / Saved</div>
+        <div className="leg-item"><span className="dot saved"></span> Key In Vault</div>
         <div className="leg-item"><span className="dot nearby"></span> Uncracked Airwave</div>
         <div className="leg-item"><span className="dot open"></span> Open Wi-Fi</div>
       </div>

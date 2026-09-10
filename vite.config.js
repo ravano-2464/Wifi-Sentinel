@@ -93,7 +93,12 @@ async function getAllProfiles() {
 }
 
 async function getNearbyNetworks() {
-  const raw = await runCmd('netsh wlan show networks mode=bssid');
+  // Actively trigger Wi-Fi hardware adapter scan
+  let raw = await runCmd('powershell -NoProfile -ExecutionPolicy Bypass -File "src/utils/scanHelper.ps1"');
+  if (!raw || !raw.includes('SSID')) {
+    raw = await runCmd('netsh wlan show networks mode=bssid');
+  }
+
   const networks = [];
   if (!raw) return networks;
 

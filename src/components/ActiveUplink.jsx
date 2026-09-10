@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Eye, EyeOff, Copy, QrCode, Wifi, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { getRadioGen } from '../utils/helpers';
 
@@ -98,18 +99,36 @@ export default function ActiveUplink({
                   readOnly 
                 />
                 <div className="pass-actions">
-                  <button onClick={handleReveal} className="action-btn" title="Reveal / Hide Password">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleReveal} 
+                    className="action-btn" 
+                    title="Reveal / Hide Password"
+                  >
                     {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
                     <span>{isRevealed ? 'HIDE' : 'REVEAL'}</span>
-                  </button>
-                  <button onClick={handleCopy} className="action-btn" title="Copy to Clipboard">
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCopy} 
+                    className="action-btn" 
+                    title="Copy to Clipboard"
+                  >
                     <Copy size={13} />
                     <span>COPY</span>
-                  </button>
-                  <button onClick={handleQr} className="action-btn accent" title="Generate Mobile QR">
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleQr} 
+                    className="action-btn accent" 
+                    title="Generate Mobile QR"
+                  >
                     <QrCode size={13} />
                     <span>QR CODE</span>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </div>
@@ -132,10 +151,12 @@ export default function ActiveUplink({
                   <span className="gauge-val">{tx.toFixed(1)} <small>Mbps</small></span>
                 </div>
                 <div className="progress-track">
-                  <div 
+                  <motion.div 
                     className="progress-fill tx-fill" 
-                    style={{ width: `${Math.min(100, Math.max(4, (tx / 600) * 100))}%` }}
-                  ></div>
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${Math.min(100, Math.max(4, (tx / 600) * 100))}%` }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                  />
                 </div>
                 <div className="speed-scale">
                   <span>0</span><span>150</span><span>300</span><span>600+ Mbps</span>
@@ -151,10 +172,12 @@ export default function ActiveUplink({
                   <span className="gauge-val">{rx.toFixed(1)} <small>Mbps</small></span>
                 </div>
                 <div className="progress-track">
-                  <div 
+                  <motion.div 
                     className="progress-fill rx-fill" 
-                    style={{ width: `${Math.min(100, Math.max(4, (rx / 600) * 100))}%` }}
-                  ></div>
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${Math.min(100, Math.max(4, (rx / 600) * 100))}%` }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                  />
                 </div>
                 <div className="speed-scale">
                   <span>0</span><span>150</span><span>300</span><span>600+ Mbps</span>

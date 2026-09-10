@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Radar, Volume2, VolumeX, Zap, Download, Database, FileText, Table } from 'lucide-react';
 import { ExportService } from '../services/exportService';
 import { formatTime } from '../utils/helpers';
@@ -40,9 +41,13 @@ export default function HeaderHUD({
     <header className="hud-header">
       <div className="header-left">
         <div className="brand-logo">
-          <div className="radar-mini-icon">
+          <motion.div 
+            className="radar-mini-icon"
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+          >
             <Radar className="radar-lucide-icon" size={18} />
-          </div>
+          </motion.div>
           <div className="brand-text">
             <h1 className="glitch-text" data-text="WIFI//SENTINEL">WIFI//SENTINEL</h1>
             <span className="sub-glitch">MODULAR REACT 18 // TACTICAL AIRSPACE SCANNER</span>
@@ -51,11 +56,14 @@ export default function HeaderHUD({
       </div>
 
       <div className="header-center hud-status-bar">
-        <div className="status-chip active">
+        <motion.div 
+          className="status-chip active"
+          whileHover={{ scale: 1.05 }}
+        >
           <span className="pulse-dot"></span>
           <span className="label">AIRSPACE:</span>
           <span className="val">MONITORING</span>
-        </div>
+        </motion.div>
         <div className="status-chip">
           <span className="label">SYSTEM:</span>
           <span className="val">NETSH WIN-64 // VITE 5</span>
@@ -67,26 +75,32 @@ export default function HeaderHUD({
       </div>
 
       <div className="header-right hud-controls">
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onToggleAudio} 
           className="cyber-btn sm" 
           title="Toggle Cyber Sound Effects"
         >
           {audioEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
           <span>{audioEnabled ? 'AUDIO: ON' : 'AUDIO: MUTED'}</span>
-        </button>
+        </motion.button>
 
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => { onPlaySound('click'); onRefresh(); }} 
           className={`cyber-btn sm primary ${isRefreshing ? 'loading' : ''}`}
           title="Scan spectrum again"
         >
           <Zap size={14} />
           <span>{isRefreshing ? 'SCANNING...' : 'SCAN AIRSPACE'}</span>
-        </button>
+        </motion.button>
 
         <div className="dropdown-wrapper">
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
             onClick={(e) => {
               e.stopPropagation();
               onPlaySound('click');
@@ -96,21 +110,30 @@ export default function HeaderHUD({
           >
             <Download size={14} />
             <span>EXPORT VAULT ▾</span>
-          </button>
+          </motion.button>
 
-          {showExportMenu && (
-            <div className="dropdown-menu show" onClick={(e) => e.stopPropagation()}>
-              <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('json'); }}>
-                <Database size={13} style={{ marginRight: 6 }} /> Export JSON
-              </a>
-              <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('csv'); }}>
-                <Table size={13} style={{ marginRight: 6 }} /> Export CSV
-              </a>
-              <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('txt'); }}>
-                <FileText size={13} style={{ marginRight: 6 }} /> Export Plaintext
-              </a>
-            </div>
-          )}
+          <AnimatePresence>
+            {showExportMenu && (
+              <motion.div 
+                className="dropdown-menu show" 
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('json'); }}>
+                  <Database size={13} style={{ marginRight: 6 }} /> Export JSON
+                </a>
+                <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('csv'); }}>
+                  <Table size={13} style={{ marginRight: 6 }} /> Export CSV
+                </a>
+                <a href="#export" onClick={(e) => { e.preventDefault(); handleExport('txt'); }}>
+                  <FileText size={13} style={{ marginRight: 6 }} /> Export Plaintext
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

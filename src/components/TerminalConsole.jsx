@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Terminal, Trash2 } from 'lucide-react';
 
 export default function TerminalConsole({ logs, onClearLogs }) {
@@ -22,17 +23,29 @@ export default function TerminalConsole({ logs, onClearLogs }) {
           <Terminal size={14} color="var(--neon-green)" style={{ marginRight: 4 }} />
           <h3>NETSH DIAGNOSTIC CONSOLE</h3>
         </div>
-        <button className="text-btn sm" onClick={onClearLogs} title="Clear Terminal Logs">
+        <motion.button 
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className="text-btn sm" 
+          onClick={onClearLogs} 
+          title="Clear Terminal Logs"
+        >
           <Trash2 size={12} style={{ display: 'inline', marginRight: 4 }} /> CLEAR
-        </button>
+        </motion.button>
       </div>
 
       <div className="terminal-log-stream" ref={containerRef}>
         {logs.map((log, idx) => (
-          <div key={idx} className="log-line">
+          <motion.div 
+            key={idx} 
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.15 }}
+            className="log-line"
+          >
             <span className="time">[{log.time}]</span>{' '}
             <span className={log.type}>{log.text}</span>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

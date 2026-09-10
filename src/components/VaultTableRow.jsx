@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function VaultTableRow({
   profile,
@@ -18,7 +19,14 @@ export default function VaultTableRow({
   else if (profile.isOpen) badgeClass += ' open';
 
   return (
-    <tr className={isConnected ? 'active-row' : ''}>
+    <motion.tr 
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      className={isConnected ? 'active-row' : ''}
+    >
       <td><span style={{ color: 'var(--text-dim)' }}>{index + 1}</span></td>
       <td>
         <div className="table-ssid">
@@ -39,29 +47,35 @@ export default function VaultTableRow({
       </td>
       <td>
         <div className="table-actions">
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             className="tbl-btn"
             onClick={() => onToggleReveal(profile.name, profile.password)}
             title="Reveal / Hide Password"
           >
             {isRevealed ? 'HIDE' : 'DECODE'}
-          </button>
-          <button 
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             className="tbl-btn"
             onClick={() => onCopy(profile.password, profile.ssid)}
             title="Copy Password"
           >
             COPY
-          </button>
-          <button 
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             className="tbl-btn accent"
             onClick={() => onShowQr(profile.ssid, profile.password, profile.authentication)}
             title="Generate Mobile QR"
           >
             QR
-          </button>
+          </motion.button>
         </div>
       </td>
-    </tr>
+    </motion.tr>
   );
 }

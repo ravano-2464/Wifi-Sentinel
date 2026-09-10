@@ -1,4 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
 import HeaderHUD from './components/HeaderHUD';
 import ActiveUplink from './components/ActiveUplink';
 import TacticalRadar from './components/TacticalRadar';
@@ -11,10 +13,44 @@ import { useAudioFx } from './hooks/useAudioFx';
 import { formatTime } from './utils/helpers';
 
 export default function App() {
+  const containerRef = useRef(null);
   const [toasts, setToasts] = useState([]);
   const [logs, setLogs] = useState([
-    { time: formatTime(), text: 'MODULAR REACT 18 + VITE INITIALIZED // Scalable Architecture Active.', type: 'info' }
+    { time: formatTime(), text: 'CYBER//WIFI-SENTINEL INITIALIZED // GSAP + Framer Motion Animation Engine Online.', type: 'info' }
   ]);
+
+  // GSAP Entrance & Boot-Up Sequence Animation
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.fromTo(
+        '.hud-header',
+        { y: -40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7 }
+      )
+      .fromTo(
+        '.active-uplink-section',
+        { scale: 0.96, opacity: 0, y: 20 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.65 },
+        '-=0.35'
+      )
+      .fromTo(
+        ['.radar-column', '.vault-column'],
+        { y: 35, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, stagger: 0.15 },
+        '-=0.3'
+      )
+      .fromTo(
+        '.hud-footer',
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5 },
+        '-=0.2'
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const logTerminal = useCallback((text, type = 'info') => {
     setLogs(prev => [...prev.slice(-40), { time: formatTime(), text, type }]);
@@ -63,7 +99,7 @@ export default function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" ref={containerRef}>
       {/* HUD Header */}
       <HeaderHUD 
         audioEnabled={audioEnabled}
@@ -129,21 +165,25 @@ export default function App() {
       {/* HUD Footer */}
       <footer className="hud-footer">
         <div className="footer-left">
-          <span>CYBER//WIFI-SENTINEL (REACT 18 + VITE)</span> • <span>MODULAR COMPONENT ARCHITECTURE</span>
+          <span>CYBER//WIFI-SENTINEL (REACT 18 + VITE)</span> • <span>GSAP & FRAMER MOTION ACTIVE</span>
         </div>
         <div className="footer-right">
           <span className="status-ok">● SYSTEM OPERATIONAL</span>
         </div>
       </footer>
 
-      {/* QR Code Modal */}
-      <QrModal 
-        isOpen={Boolean(qrModalData)}
-        onClose={() => setQrModalData(null)}
-        data={qrModalData}
-        audioEnabled={audioEnabled}
-        onShowToast={showToast}
-      />
+      {/* QR Code Modal with AnimatePresence */}
+      <AnimatePresence>
+        {qrModalData && (
+          <QrModal 
+            isOpen={Boolean(qrModalData)}
+            onClose={() => setQrModalData(null)}
+            data={qrModalData}
+            audioEnabled={audioEnabled}
+            onShowToast={showToast}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Toast Notifications Container */}
       <ToastContainer toasts={toasts} />
